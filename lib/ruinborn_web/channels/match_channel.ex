@@ -34,6 +34,16 @@ defmodule RuinbornWeb.MatchChannel do
   end
 
   @impl true
+  def handle_in("move", %{"pos" => pos}, socket) do
+    broadcast_from!(socket, "player_moved", %{
+      player_id: socket.assigns.player_id,
+      pos: pos
+    })
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def terminate(_reason, socket) do
     match_id = socket.assigns[:match_id]
     player_id = socket.assigns[:player_id]
