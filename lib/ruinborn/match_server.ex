@@ -5,9 +5,7 @@ defmodule Ruinborn.MatchServer do
 
   defstruct match_id: nil, phase: :waiting, players: %{}
 
-  # ---------------------------------------------------------------------------
   # Client API
-  # ---------------------------------------------------------------------------
 
   def start_link(match_id) do
     GenServer.start_link(__MODULE__, match_id, name: via(match_id))
