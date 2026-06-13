@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Ruinborn Channel Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #fdf6e3;
+            color: #839496;
+            padding: 2rem;
+        }
+
+        h2 {
+            color: #586e75;
+        }
+
+        #log {
+            background: #fdf6e3;
+            border: 1px solid #b58900;
+            padding: 1rem;
+            height: 320px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .event {
+            color: #859900;
+        }
+
+        .system {
+            color: #cb4b16;
+        }
+
+        .error {
+            color: #dc322f;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Ruinborn WebSocket Test</h2>
+    <p>Player: <strong id="player-id">—</strong>
+        &nbsp;|&nbsp; Status: <strong id="status">connecting...</strong></p>
+    <div id="log"></div>
+
+    <script type="module">
+        import {Socket} from "/phoenix.mjs"
+
+
+        let playerId = localStorage.getItem("ruinborn_player_id")
+        if (!playerId) {
+            playerId = "player_" + Math.random().toString(36).slice(2, 7)
+            localStorage.setItem("ruinborn_player_id", playerId)
+        }
+        const matchId = "room_1"
+
+        document.getElementById("player-id").textContent = playerId
+
+        function log(msg, cls = "") {
+            const div = document.getElementById("log")
+            const line = document.createElement("div")
+            if (cls) line.className = cls
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`
+            div.appendChild(line)
+            div.scrollTop = div.scrollHeight
+        }
+
+        const socket = new Socket("ws://localhost:4000/socket", {
+            params: {player_id: playerId}
+        })
+
+        socket.onOpen(() => {
+            document.getElementById("status").textContent = "connected"
+            log("WebSocket open", "system")
+        })
+        socket.onError(() => log("WebSocket error", "error"))
+        socket.onClose(() => {
+            document.getElementById("status").textContent = "disconnected"
+            log("WebSocket closed", "error")
+        })
+
+        socket.connect()
+
+        const channel = socket.channel(`match:${matchId}`, {})
+
+        channel.on("player_joined", (payload) => {
+            log(
+                `player_joined - ${payload.player_id}  (${payload.player_count} in room)`,
+                "event"
+            )
+        })
+
+        channel.join()
+            .receive("ok", () => log(`Joined match:${matchId}`, "system"))
+            .receive("error", (err) => log(`Join failed: ${JSON.stringify(err)}`, "error"))
+    </script>
+</body>
+
+</html>
