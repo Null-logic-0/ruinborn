@@ -83,12 +83,23 @@
         socket.connect()
 
         const channel = socket.channel(`match:${matchId}`, {})
+        window.channel = channel
 
         channel.on("player_joined", (payload) => {
             log(
                 `player_joined - ${payload.player_id}  (${payload.player_count} in room)`,
                 "event"
             )
+        })
+
+        channel.on("hp_update", (payload) => {
+            log(`hp_update → ${payload.player_id} hp: ${payload.hp}`, "event")
+        })
+        channel.on("player_died", (payload) => {
+            log(`player_died → ${payload.player_id} killed by ${payload.killer_id}`, "event")
+        })
+        channel.on("player_moved", (payload) => {
+            log(`player_moved → ${payload.player_id}`, "event")
         })
 
         channel.join()

@@ -28,20 +28,57 @@ defmodule RuinbornWeb.MatchChannel do
     {:noreply, socket}
   end
 
-  @impl true
-  def handle_in("ping", _payload, socket) do
-    {:reply, {:ok, %{pong: true}}, socket}
-  end
+  # Client Messages
 
   @impl true
   def handle_in("move", %{"pos" => pos}, socket) do
+    player_id = socket.assigns.player_id
+    match_id = socket.assigns.match_id
+
+    MatchServer.update_position(match_id, player_id, pos)
+
     broadcast_from!(socket, "player_moved", %{
-      player_id: socket.assigns.player_id,
+      player_id: player_id,
       pos: pos
     })
 
     {:noreply, socket}
   end
+
+  @impl true
+  def handle_in("attack", %{"weapon" => weapon, "pos" => attacker_pos}, socket) do
+    attacker_id = socket.assigns.player_id
+    match_id = socket.assigns.match_id
+
+    case MatchServer.process_attack(match_id, attacker_id, attacker_pos, weapon) do
+      {:hit, target_id, new_hp} ->
+        broadcast!(socket, "hp_update", %{
+          player_id: target_id,
+          hp: new_hp
+        })
+
+        if new_hp <= 0 do
+          broadcast!(socket, "player_died", %{
+            player_id: target_id,
+            killer_id: attacker_id
+          })
+
+          Logger.info("#{attacker_id} killed #{target_id} in match #{match_id}")
+        end
+
+      {:miss, reason} ->
+        Logger.debug("Attack missed: #{inspect(reason)}")
+    end
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_in("ping", _payload, socket) do
+    {:reply, {:ok, %{pong: true}}, socket}
+  end
+
+  # Disconnect
 
   @impl true
   def terminate(_reason, socket) do
@@ -59,6 +96,8 @@ defmodule RuinbornWeb.MatchChannel do
 
     :ok
   end
+
+  # Private
 
   defp ensure_match_started(match_id) do
     case DynamicSupervisor.start_child(
