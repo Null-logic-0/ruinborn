@@ -8,27 +8,39 @@ defmodule RuinbornWeb.MatchChannel do
   def join("match:" <> match_id, _payload, socket) do
     player_id = socket.assigns.player_id
     :ok = ensure_match_started(match_id)
-    {:ok, match_state} = MatchServer.player_joined(match_id, player_id)
 
-    send(self(), {:after_join, player_id, match_state})
+    case MatchServer.player_joined(match_id, player_id) do
+      {:ok, match_state} ->
+        Phoenix.PubSub.subscribe(Ruinborn.PubSub, "match_events:#{match_id}")
+        send(self(), {:after_join, player_id, match_state})
+        socket = assign(socket, :match_id, match_id)
+        Logger.info("#{player_id} joined match #{match_id}")
+        {:ok, socket}
 
-    socket = assign(socket, :match_id, match_id)
-
-    Logger.info("#{player_id} joined match #{match_id}")
-    {:ok, socket}
+      {:error, :room_full} ->
+        Logger.info("#{player_id} rejected — room full")
+        {:error, %{reason: "room_full"}}
+    end
   end
 
   @impl true
   def handle_info({:after_join, player_id, match_state}, socket) do
     broadcast!(socket, "player_joined", %{
       player_id: player_id,
-      player_count: map_size(match_state.players)
+      player_count: map_size(match_state.players),
+      phase: Atom.to_string(match_state.phase)
     })
 
     {:noreply, socket}
   end
 
   # Client Messages
+
+  @impl true
+  def handle_info({:match_event, event, payload}, socket) do
+    push(socket, event, payload)
+    {:noreply, socket}
+  end
 
   @impl true
   def handle_in("move", %{"pos" => pos}, socket) do
