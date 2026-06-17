@@ -1,9 +1,10 @@
 defmodule Ruinborn do
   @moduledoc """
-  Ruinborn keeps the contexts that define your domain
-  and business logic.
+  Domain entry point for Ruinborn.
 
-  Contexts are also responsible for managing your data, regardless
-  if it comes from the database, an external API or others.
+  Ruinborn is a real-time multiplayer match service. The domain logic
+  currently lives in `Ruinborn.Match.State`, `Ruinborn.Match.Combat`, and
+  `Ruinborn.MatchServer`, while the Phoenix Channel layer in
+  `RuinbornWeb.MatchChannel` exposes that behavior to connected clients.
   """
 end

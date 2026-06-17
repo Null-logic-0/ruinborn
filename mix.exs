@@ -9,6 +9,7 @@ defmodule Ruinborn.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
+      docs: docs(),
       deps: deps(),
       listeners: [Phoenix.CodeReloader]
     ]
@@ -48,7 +49,26 @@ defmodule Ruinborn.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: ["README.md", "LICENSE"],
+      groups_for_modules: [
+        Match: [
+          Ruinborn.Match.State,
+          Ruinborn.Match.Combat,
+          Ruinborn.MatchServer
+        ],
+        Web: [
+          RuinbornWeb.MatchChannel,
+          RuinbornWeb.UserSocket
+        ]
+      ]
     ]
   end
 

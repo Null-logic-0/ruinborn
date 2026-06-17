@@ -64,7 +64,11 @@ defmodule RuinbornWeb.MatchChannelTest do
 
       state = MatchServer.get_state(match_id)
 
-      assert state.players["player_1"] == %{hp: 100, alive: true}
+      assert state.players["player_1"] == %{
+               hp: 100,
+               alive: true,
+               pos: %{"x" => 0, "y" => 0, "z" => 0}
+             }
     end
   end
 

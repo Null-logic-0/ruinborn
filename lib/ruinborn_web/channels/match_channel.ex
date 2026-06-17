@@ -1,9 +1,19 @@
 defmodule RuinbornWeb.MatchChannel do
+  @moduledoc """
+  Phoenix Channel for real-time match play.
+
+  Clients join topics shaped as `"match:<match_id>"`. The channel ensures a
+  `Ruinborn.MatchServer` exists for that match, tracks the connected player's
+  ID from the socket assigns, forwards movement and attack commands into the
+  match server, and broadcasts player-facing events back to the room.
+  """
+
   use RuinbornWeb, :channel
 
   alias Ruinborn.MatchServer
   require Logger
 
+  @doc false
   @impl true
   def join("match:" <> match_id, _payload, socket) do
     player_id = socket.assigns.player_id
@@ -23,6 +33,7 @@ defmodule RuinbornWeb.MatchChannel do
     end
   end
 
+  @doc false
   @impl true
   def handle_info({:after_join, player_id, match_state}, socket) do
     broadcast!(socket, "player_joined", %{
@@ -36,12 +47,14 @@ defmodule RuinbornWeb.MatchChannel do
 
   # Client Messages
 
+  @doc false
   @impl true
   def handle_info({:match_event, event, payload}, socket) do
     push(socket, event, payload)
     {:noreply, socket}
   end
 
+  @doc false
   @impl true
   def handle_in("move", %{"pos" => pos}, socket) do
     player_id = socket.assigns.player_id
@@ -57,6 +70,7 @@ defmodule RuinbornWeb.MatchChannel do
     {:noreply, socket}
   end
 
+  @doc false
   @impl true
   def handle_in("attack", %{"weapon" => weapon, "pos" => attacker_pos}, socket) do
     attacker_id = socket.assigns.player_id
@@ -85,6 +99,7 @@ defmodule RuinbornWeb.MatchChannel do
     {:noreply, socket}
   end
 
+  @doc false
   @impl true
   def handle_in("ping", _payload, socket) do
     {:reply, {:ok, %{pong: true}}, socket}
@@ -92,6 +107,7 @@ defmodule RuinbornWeb.MatchChannel do
 
   # Disconnect
 
+  @doc false
   @impl true
   def terminate(_reason, socket) do
     match_id = socket.assigns[:match_id]
