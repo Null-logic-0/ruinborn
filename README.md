@@ -76,6 +76,13 @@ The client-side project lives at [`Null-logic-0/ruinborn-client`](https://github
 
 The Unity client handles player movement, remote player spawning, attack messages, HP updates, deaths, countdowns, and match-end events while this Elixir project owns the authoritative match state and combat resolution.
 
+
+
+
+https://github.com/user-attachments/assets/2c3b17e3-5f99-4f36-ba46-dd45fd4041aa
+
+
+
 ## Channel Events
 
 Clients join a match by connecting to:
