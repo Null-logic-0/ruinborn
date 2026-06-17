@@ -68,6 +68,14 @@ Then visit [localhost:4000/test.html](http://localhost:4000/test.html).
 - `lib/ruinborn_web/channels/match_channel.ex` exposes the real-time channel API.
 - `test/` contains unit and channel tests.
 
+## Client
+
+The client-side project lives at [`Null-logic-0/ruinborn-client`](https://github.com/Null-logic-0/ruinborn-client).
+
+`ruinborn-client` is a Unity prototype that connects to this Phoenix backend over WebSockets. It is not meant to be a polished game; it is a playable test client for checking how Ruinborn handles real-time multiplayer traffic from an actual game-like environment.
+
+The Unity client handles player movement, remote player spawning, attack messages, HP updates, deaths, countdowns, and match-end events while this Elixir project owns the authoritative match state and combat resolution.
+
 ## Channel Events
 
 Clients join a match by connecting to:
